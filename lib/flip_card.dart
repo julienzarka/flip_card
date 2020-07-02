@@ -1,6 +1,7 @@
 library flip_card;
 
 import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 enum FlipDirection {
@@ -74,17 +75,19 @@ class FlipCard extends StatefulWidget {
   /// }
   ///```
   final bool flipOnTouch;
+  final bool disabled;
 
-  const FlipCard(
-      {Key key,
-      @required this.front,
-      @required this.back,
-      this.speed = 500,
-      this.onFlip,
-      this.onFlipDone,
-      this.direction = FlipDirection.HORIZONTAL,
-      this.flipOnTouch = true})
-      : super(key: key);
+  const FlipCard({
+    Key key,
+    @required this.front,
+    @required this.back,
+    this.speed = 500,
+    this.onFlip,
+    this.onFlipDone,
+    this.flipOnTouch = true,
+    this.disabled = false,
+    this.direction = FlipDirection.HORIZONTAL,
+  }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -92,24 +95,29 @@ class FlipCard extends StatefulWidget {
   }
 }
 
-class FlipCardState extends State<FlipCard>
-    with SingleTickerProviderStateMixin {
+class FlipCardState extends State<FlipCard> with SingleTickerProviderStateMixin {
   AnimationController controller;
   Animation<double> _frontRotation;
   Animation<double> _backRotation;
 
-  bool isFront = true;
+  bool _isFront = true;
+  bool _disabled = false;
+
+  bool isFront() => _isFront;
+  bool isDisabled() => _disabled;
 
   @override
   void initState() {
     super.initState();
     controller = AnimationController(
-        duration: Duration(milliseconds: widget.speed), vsync: this);
+      duration: Duration(milliseconds: widget.speed),
+      vsync: this,
+    );
+    _disabled = widget.disabled;
     _frontRotation = TweenSequence(
       <TweenSequenceItem<double>>[
         TweenSequenceItem<double>(
-          tween: Tween(begin: 0.0, end: pi / 2)
-              .chain(CurveTween(curve: Curves.easeIn)),
+          tween: Tween(begin: 0.0, end: pi / 2).chain(CurveTween(curve: Curves.easeIn)),
           weight: 50.0,
         ),
         TweenSequenceItem<double>(
@@ -125,33 +133,40 @@ class FlipCardState extends State<FlipCard>
           weight: 50.0,
         ),
         TweenSequenceItem<double>(
-          tween: Tween(begin: -pi / 2, end: 0.0)
-              .chain(CurveTween(curve: Curves.easeOut)),
+          tween: Tween(begin: -pi / 2, end: 0.0).chain(CurveTween(curve: Curves.easeOut)),
           weight: 50.0,
         ),
       ],
     ).animate(controller);
     controller.addStatusListener((status) {
-      if (status == AnimationStatus.completed ||
-          status == AnimationStatus.dismissed) {
-        if (widget.onFlipDone != null) widget.onFlipDone(isFront);
+      if (status == AnimationStatus.completed || status == AnimationStatus.dismissed) {
+        if (widget.onFlipDone != null) widget.onFlipDone(_isFront);
       }
     });
   }
 
   void toggleCard() {
+    if (_disabled) return;
     if (widget.onFlip != null) {
       widget.onFlip();
     }
-    if (isFront) {
+    if (_isFront) {
       controller.forward();
     } else {
       controller.reverse();
     }
 
     setState(() {
-      isFront = !isFront;
+      _isFront = !_isFront;
     });
+  }
+
+  bool enabled(bool state) {
+    if (_disabled != state) {
+      _disabled = state;
+      if (mounted) setState(() {});
+    }
+    return _disabled;
   }
 
   @override
@@ -181,7 +196,7 @@ class FlipCardState extends State<FlipCard>
     return IgnorePointer(
       // absorb the front card when the background is active (!isFront),
       // absorb the background when the front is active
-      ignoring: front ? !isFront : isFront,
+      ignoring: front ? !_isFront : _isFront,
       child: AnimationCard(
         animation: front ? _frontRotation : _backRotation,
         child: front ? widget.front : widget.back,

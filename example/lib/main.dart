@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:flip_card/flip_card.dart';
+import 'package:flutter/material.dart';
 
 void main() => runApp(MyApp());
 
@@ -53,9 +53,8 @@ class HomePage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Text('Front', style: Theme.of(context).textTheme.headline),
-              Text('Click here to flip back',
-                  style: Theme.of(context).textTheme.body1),
+              Text('Front', style: Theme.of(context).textTheme.headline5),
+              Text('Click here to flip back', style: Theme.of(context).textTheme.bodyText2),
             ],
           ),
         ),
@@ -67,9 +66,8 @@ class HomePage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Text('Back', style: Theme.of(context).textTheme.headline),
-              Text('Click here to flip front',
-                  style: Theme.of(context).textTheme.body1),
+              Text('Back', style: Theme.of(context).textTheme.headline5),
+              Text('Click here to flip front', style: Theme.of(context).textTheme.bodyText2),
             ],
           ),
         ),
